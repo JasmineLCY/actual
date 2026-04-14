@@ -36,6 +36,13 @@ jobs:
       - name: Trust the repository directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Build browser bundle
+        # REACT_APP_NETLIFY=true flips isNonProductionEnvironment() on in the
+        # bundle so the "Create test file" button (used by every e2e beforeEach
+        # via ConfigurationPage.createTestFile()) is still rendered in a
+        # production build. Without it, e2e tests would time out waiting for
+        # a button that was tree-shaken out.
+        env:
+          REACT_APP_NETLIFY: 'true'
         run: |
           yarn workspace plugins-service build
           yarn workspace @actual-app/core build:browser
