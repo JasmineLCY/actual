@@ -6,14 +6,14 @@ export default defineConfig({
   timeout: 60000, // 60 seconds
   retries: 1,
   fullyParallel: true,
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 4 : undefined,
   testDir: 'e2e/',
   reporter: process.env.CI
     ? [['blob'], ['list']]
     : [['html', { open: 'never' }]],
   use: {
     userAgent: 'playwright',
-    screenshot: 'on',
+    screenshot: 'only-on-failure',
     browserName: 'chromium',
     baseURL: process.env.E2E_START_URL ?? 'http://localhost:3001',
     trace: 'on-first-retry',
@@ -26,11 +26,14 @@ export default defineConfig({
     ? undefined
     : {
         cwd: path.join(__dirname, '..', '..'),
-        command: 'yarn start',
+        command: process.env.E2E_USE_BUILD
+          ? 'node packages/desktop-client/bin/serve-build.mjs'
+          : 'yarn start',
         url: 'http://localhost:3001',
         reuseExistingServer: !process.env.CI,
         stdout: 'ignore',
         stderr: 'pipe',
         ignoreHTTPSErrors: true,
+        timeout: 120_000,
       },
 });
